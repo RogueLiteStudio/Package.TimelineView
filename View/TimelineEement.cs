@@ -2,7 +2,7 @@
 
 namespace TimelineView
 {
-    public class TimelineBarView : IMGUIContainer
+    public class TimelineEement : VisualElement
     {
     }
 }
