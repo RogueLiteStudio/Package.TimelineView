@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TimelineView
 {
@@ -15,7 +17,8 @@ namespace TimelineView
     public class TimelineClipView : TimelineEement
     {
         private VisualElement colorbar;
-        private VisualElement selectBackgroud;
+        private VisualElement selectBackground;
+        private VisualElement container;
         private Label titleLabel;
         private CursorRect leftHandle;
         private CursorRect rightHandle;
@@ -37,6 +40,10 @@ namespace TimelineView
             get => titleLabel.text;
             set => titleLabel.text = value;
         }
+
+        public int ChildCount => container.childCount;
+        public IEnumerable<TimelineClipView> Clips=>container.Children().Select(it=>it as TimelineClipView);
+
         public TimelineClipView()
         {
             Init();
@@ -49,9 +56,7 @@ namespace TimelineView
 
         private void Init()
         {
-            style.height = TimelineViewStyle.ClipHeight;
-            style.backgroundColor = TimelineViewStyle.ClipSelectColor;
-            style.overflow = Overflow.Hidden;
+            style.minHeight = TimelineViewStyle.ClipHeight;
 
             style.borderLeftColor = Color.gray;
             style.borderRightColor = Color.gray;
@@ -59,24 +64,29 @@ namespace TimelineView
             style.borderRightWidth = 2;
 
             colorbar = new VisualElement();
+            colorbar.name = "ClipColorBar";
             colorbar.StretchToParentWidth();
             colorbar.style.height = 4;
             colorbar.style.bottom = 0;
             colorbar.style.backgroundColor = Color.blue;
             Add(colorbar);
 
-            selectBackgroud = new VisualElement();
-            selectBackgroud.StretchToParentSize();
-            selectBackgroud.visible = false;
-            selectBackgroud.style.backgroundColor = TimelineViewStyle.ClipSelectColor;
-            SetOutLine(selectBackgroud, Color.white, 1);
-            Add(selectBackgroud);
+            selectBackground = new VisualElement();
+            selectBackground.name = "ClipSelectBackground";
+            selectBackground.StretchToParentSize();
+            selectBackground.visible = false;
+            selectBackground.style.backgroundColor = TimelineViewStyle.ClipSelectColor;
+            SetOutLine(selectBackground, Color.white, 1);
+            Add(selectBackground);
 
             var contentBox = new VisualElement();
-            contentBox.style.flexGrow = 1;
+            contentBox.name = "ClipContentBox";
+            contentBox.style.backgroundColor = TimelineViewStyle.ClipBackGroundColor;
+            contentBox.style.height = TimelineViewStyle.ClipHeight;
             contentBox.style.flexDirection = FlexDirection.Row;
             contentBox.style.alignItems = Align.Center;
             contentBox.style.justifyContent = Justify.Center;
+            contentBox.style.overflow = Overflow.Hidden;
             Add(contentBox);
 
             titleLabel = new Label();
@@ -86,6 +96,7 @@ namespace TimelineView
             contentBox.Add(titleLabel);
 
             leftHandle = new CursorRect();
+            leftHandle.name = "ClipLeftHandle";
             leftHandle.style.left = 0;
             leftHandle.style.width = 3;
             leftHandle.style.top = 0;
@@ -94,6 +105,7 @@ namespace TimelineView
             Add(leftHandle);
 
             rightHandle = new CursorRect();
+            rightHandle.name = "ClipRightHandle";
             rightHandle.style.width = TimelineViewStyle.ClipHandleWidth;
             rightHandle.style.right = 0;
             rightHandle.style.width = 3;
@@ -102,7 +114,17 @@ namespace TimelineView
             rightHandle.RegisterCallback<MouseDownEvent>(OnClickRightHandle);
             Add(rightHandle);
 
+            container = new VisualElement();
+            container.name = "ClipContainer";
+            container.style.marginTop = TimelineViewStyle.ClipHeight;
+            Add(container);
+
             this.AddManipulator(new DragManipulator(OnDragStart, OnDragMove, OnDragEnd));
+        }
+
+        public void AddChildClip(TimelineClipView clip)
+        {
+            container.Add(clip);
         }
 
         private void OnClickLeftHandle(MouseDownEvent evt)
