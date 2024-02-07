@@ -39,5 +39,13 @@ namespace TimelineView
         {
             container.Add(clipView);
         }
+
+        protected override void OnScaleChanged()
+        {
+            foreach (var clip in Clips)
+            {
+                clip.Scale = Scale;
+            }
+        }
     }
 }

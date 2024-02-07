@@ -5,25 +5,29 @@ namespace TimelineView
 {
     public struct DragEventData
     {
-        public Vector2 LocalMousePosition;
+        public Vector2 StartMousePosition;
+        public Vector2 CuurentMousePosition;
         public Vector2 Delta;
+        public DragStateType State;
+    }
+
+    public enum DragStateType
+    {
+        Start,
+        Move,
+        End
     }
 
     public class DragManipulator : MouseManipulator
     {
-        private bool gotMouseDown;
-        private bool isDragStart;
+        private DragStateType dragState;
         private Vector2 mouseDownPosition;
 
-        private readonly System.Action<DragEventData> OnDragStart;
-        private readonly System.Action<DragEventData> OnDragMove;
-        private readonly System.Action<DragEventData> OnDragEnd;
+        private readonly System.Action<DragEventData> OnDragEvent;
 
-        public DragManipulator(System.Action<DragEventData> onDragStart, System.Action<DragEventData> onDragMove, System.Action<DragEventData> onDragEnd)
+        public DragManipulator(System.Action<DragEventData> onDragEvent)
         {
-            OnDragStart = onDragStart;
-            OnDragMove = onDragMove;
-            OnDragEnd = onDragEnd;
+            OnDragEvent = onDragEvent;
         }
         
         protected override void RegisterCallbacksOnTarget()
@@ -44,8 +48,7 @@ namespace TimelineView
         {
             if (evt.button == 0)
             {
-                isDragStart = false;
-                gotMouseDown = true;
+                dragState = DragStateType.Start;
                 mouseDownPosition = evt.localMousePosition;
                 target.CaptureMouse();
                 evt.StopPropagation();
@@ -54,25 +57,17 @@ namespace TimelineView
 
         private void OnMouseMove(MouseMoveEvent evt)
         {
-            if (gotMouseDown && evt.pressedButtons == 1)
-            {
-                var ed = new DragEventData 
-                {
-                    LocalMousePosition = mouseDownPosition,
-                };
-                OnDragStart?.Invoke(ed);
-                gotMouseDown = false;
-                isDragStart = true;
-            }
-
-            if (isDragStart)
+            if (dragState != DragStateType.End)
             {
                 var ed = new DragEventData
                 {
-                    LocalMousePosition = evt.localMousePosition,
-                    Delta = evt.mouseDelta
+                    StartMousePosition = mouseDownPosition,
+                    CuurentMousePosition = evt.localMousePosition,
+                    Delta = evt.mouseDelta,
+                    State = dragState
                 };
-                OnDragMove?.Invoke(ed);
+                dragState = DragStateType.Move;
+                OnDragEvent?.Invoke(ed);
             }
 
         }
@@ -81,22 +76,18 @@ namespace TimelineView
         {
             if (evt.button == 0)
             {
-                if (gotMouseDown)
+                if (dragState == DragStateType.Move)
                 {
-                    gotMouseDown = false;
-                }
-
-                if (isDragStart)
-                {
-                    isDragStart = false;
+                    dragState = DragStateType.End;
                     var ed = new DragEventData
                     {
-                        LocalMousePosition = evt.localMousePosition,
-                        Delta = evt.mouseDelta
+                        StartMousePosition = mouseDownPosition,
+                        CuurentMousePosition = evt.localMousePosition,
+                        Delta = evt.mouseDelta,
+                        State = DragStateType.End
                     };
-                    OnDragEnd?.Invoke(ed);
+                    OnDragEvent?.Invoke(ed);
                 }
-
                 target.ReleaseMouse();
             }
         }

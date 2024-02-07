@@ -24,5 +24,13 @@ namespace TimelineView
         {
             container.Add(trackView);
         }
+
+        protected override void OnScaleChanged()
+        {
+            foreach (var track in Tracks)
+            {
+                track.Scale = Scale;
+            }
+        }
     }
 }

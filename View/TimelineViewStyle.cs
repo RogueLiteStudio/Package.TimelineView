@@ -10,8 +10,11 @@ namespace TimelineView
         public static readonly Color ClipBackGroundColor = new Color(70 / 255f, 70 / 255f, 70 / 255f, 1f);
         public static readonly Color ClipSelectColor = new Color(1, 1, 1, 0.3f);
 
+        public const float FrameWidth = 10;
+
         public const float TrackInterval = 5;
         public const float TrackHeight = 32;
         public static readonly Color TrackBackgroundColor = new Color(0f, 0f, 1f, 0.5f);
+        public static readonly Color TrackTitleColor = new Color32(65, 65, 65, 255);
     }
 }

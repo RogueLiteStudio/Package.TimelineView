@@ -24,6 +24,29 @@ namespace TimelineView
         private CursorRect rightHandle;
         private ClipDragCapabilities dragCapabilities;
         private ClipDragCapabilities dragType;
+        private int startFrame;
+        private int frameLength = 1;
+
+        public int StartFrame
+        {
+            get => startFrame;
+            set
+            {
+                startFrame = value;
+                style.left = startFrame * TimelineViewStyle.FrameWidth * Scale;
+            }
+        }
+
+        public int FrameLength
+        {
+            get => frameLength;
+            set
+            {
+                frameLength = value;
+                style.width = frameLength * TimelineViewStyle.FrameWidth * Scale;
+            }
+        }
+
         public ClipDragCapabilities DragCapabilities
         {
             get => dragCapabilities;
@@ -47,11 +70,22 @@ namespace TimelineView
         public ClipView()
         {
             Init();
+            OnScaleChanged();
         }
 
         public void SetColor(Color color)
         {
             colorbar.style.backgroundColor = color;
+        }
+
+        protected override void OnScaleChanged()
+        {
+            style.left = startFrame * TimelineViewStyle.FrameWidth * Scale;
+            style.width = frameLength * TimelineViewStyle.FrameWidth * Scale;
+            foreach (var child in Clips)
+            {
+                child.Scale = Scale;
+            }
         }
 
         private void Init()
@@ -119,7 +153,7 @@ namespace TimelineView
             container.style.marginTop = TimelineViewStyle.ClipHeight;
             Add(container);
 
-            this.AddManipulator(new DragManipulator(OnDragStart, OnDragMove, OnDragEnd));
+            this.AddManipulator(new DragManipulator(OnDragEvent));
         }
 
         public void AddChildClip(ClipView clip)
@@ -141,40 +175,55 @@ namespace TimelineView
             dragType = ClipDragCapabilities.DragRightHandle;
         }
 
-        private void OnDragStart(DragEventData data)
+        private void OnDragEvent(DragEventData evt)
         {
             if (dragCapabilities == ClipDragCapabilities.None)
                 return;
-            switch (dragType)
+            if (evt.State == DragStateType.End)
             {
-                case ClipDragCapabilities.DragClip:
-            	    break;
-                case ClipDragCapabilities.DragLeftHandle:
-                    break;
-                case ClipDragCapabilities.DragRightHandle:
-                    break;
-            }
-        }
-
-        private void OnDragMove(DragEventData data)
-        {
-            if (dragCapabilities == ClipDragCapabilities.None)
+                dragType = dragCapabilities & ClipDragCapabilities.DragClip;
                 return;
-            switch (dragType)
+            }
+            if (evt.State == DragStateType.Start)
             {
-                case ClipDragCapabilities.DragClip:
-                    break;
-                case ClipDragCapabilities.DragLeftHandle:
-                    break;
-                case ClipDragCapabilities.DragRightHandle:
-                    break;
+                OnDragStart();
+            }
+            int frameCount = Mathf.FloorToInt(evt.Delta.x / (TimelineViewStyle.FrameWidth * Scale));
+            frameCount = HandleDragableFrameCount(dragType, frameCount);
+            if (frameCount != 0)
+            {
+                switch (dragType)
+                {
+                    case ClipDragCapabilities.DragClip:
+                        StartFrame += frameCount;
+                        FrameLength += frameCount;
+                        break;
+                    case ClipDragCapabilities.DragLeftHandle:
+                        StartFrame += frameCount;
+                        break;
+                    case ClipDragCapabilities.DragRightHandle:
+                        FrameLength += frameCount;
+                        break;
+                }
+                OnFrameInfoChanged();
             }
         }
-        private void OnDragEnd(DragEventData data)
+
+        protected virtual void OnDragStart()
         {
-            dragType = dragCapabilities & ClipDragCapabilities.DragClip;
+            //子类注册Undo
         }
 
+        protected virtual int HandleDragableFrameCount(ClipDragCapabilities type, int frameCount)
+        {
+            //子类检查是否可以拖动
+            return frameCount;
+        }
+
+        protected virtual void OnFrameInfoChanged()
+        {
+            //更新记录的帧相关信息
+        }
 
         public static void SetOutLine(VisualElement element, Color color, int width)
         {
