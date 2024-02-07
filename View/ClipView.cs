@@ -14,7 +14,7 @@ namespace TimelineView
         DragRightHandle = 4,
     }
 
-    public class TimelineClipView : TimelineEement
+    public class ClipView : TimelineEement
     {
         private VisualElement colorbar;
         private VisualElement selectBackground;
@@ -42,9 +42,9 @@ namespace TimelineView
         }
 
         public int ChildCount => container.childCount;
-        public IEnumerable<TimelineClipView> Clips=>container.Children().Select(it=>it as TimelineClipView);
+        public IEnumerable<ClipView> Clips=>container.Children().Select(it=>it as ClipView);
 
-        public TimelineClipView()
+        public ClipView()
         {
             Init();
         }
@@ -122,7 +122,7 @@ namespace TimelineView
             this.AddManipulator(new DragManipulator(OnDragStart, OnDragMove, OnDragEnd));
         }
 
-        public void AddChildClip(TimelineClipView clip)
+        public void AddChildClip(ClipView clip)
         {
             container.Add(clip);
         }

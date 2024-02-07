@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine.UIElements;
 namespace TimelineView
 {
-    public class TimelineTrackView : TimelineEement
+    public class TrackView : TimelineEement
     {
         private VisualElement container;
         private bool isFold;
@@ -19,9 +19,9 @@ namespace TimelineView
 
         public int ClipCount => container.childCount;
 
-        public IEnumerable<TimelineClipView> Clips => container.Children().Select(it => it as TimelineClipView);
+        public IEnumerable<ClipView> Clips => container.Children().Select(it => it as ClipView);
 
-        public TimelineTrackView()
+        public TrackView()
         {
             container = new VisualElement();
             container.style.flexDirection = FlexDirection.Column;
@@ -35,7 +35,7 @@ namespace TimelineView
         }
 
 
-        public void AddClip(TimelineClipView clipView)
+        public void AddClip(ClipView clipView)
         {
             container.Add(clipView);
         }
