@@ -1,7 +1,9 @@
 {
     "name": "TimelineView",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "Common.Editor"
+    ],
     "includePlatforms": [
         "Editor"
     ],
